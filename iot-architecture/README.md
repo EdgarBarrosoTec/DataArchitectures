@@ -20,7 +20,7 @@ Como se puede observar en el diagrama, la arquitectura se divide en cuatro parte
 
 - **Visualización**: En esta propuesta, se contempla visualización de datos, y monitorización. Esto permite que no solo se tome en cuenta el funcionamiento de la aplicación, sino que también se pueda extraer información relevante para la toma de decisiones.
 
-- **Servicios Externos**: Hace referencia a servicios externos, tales como ERP (Enterprise Resource Planning), CRM (Customer Relationship Management), Kobotoolbox(Creación de formularios y herramientas para la obtención de datos), SEPAL (sistema para observación y vigilancia de la tierra), entre otros. Siempre que el sistema externo se pueda integrar a través de un API, se podrá integrar a nuestra aplicación.
+- **Servicios Externos**: Hace referencia a servicios externos, tales como ERP (Enterprise Resource Planning), CRM (Customer Relationship Management), Kobotoolbox (Creación de formularios y herramientas para la obtención de datos), SEPAL (sistema para observación y vigilancia de la tierra), Archivos (por google drive y/o csv), Drone Link (automatización de drones), entre otros. El sistema externo se puede integrar a través de un API a la aplicación, o bien, utilizando otro servicio segun el caso específico.
 
 Un punto importante a resaltar es que la arquitectura es modular, y por lo tanto, no es necesario que todos los componentes que la conforman sean requeridos, se puede prescindir de algunos de ellos, o incluso se puede comenzar solo con los servicios más importantes para lograr un funcionamiento base, y luego, poco a poco, se incorporen los componentes conforme se necesiten.
 
@@ -59,6 +59,16 @@ Por último, este grupo se compone de un Scheduler, el cual se configura para pr
 ### Almacenamiento de datos
 
 Este grupo se encarga de la persistencia de la información, tanto de los datos masivos que generan los dispositivos IoT, como de los agregados y el core de la aplicación.
+
+- **BigQuery**: Se trata de un almacen de datos, que nos brinda la capacidad de almacenar datos en formato de tablas y realizar consultas sobre ellos. Una particularidad de este almacen es que puede almacenar grandes volúmenes de datos y consultarlos a gran velocidad.
+
+- **Base de datos SQL**: Un servicio para bases de datos SQL, nos permite organizar nuestra información creando relaciones entre tablas.
+
+- **Memorystore**: Este es un servicio que permite almacenar consultas y datos en la memoria. Especialmente útil para reducir el tiempo de respuesta de la aplicación.
+
+En la arquitectura se propone usar la base de datos SQL como una solución para almacenar la información de la aplicación y de los agregados. Mientras que los grandes volúmenes de datos provenientes de los dispositivos IoT se almacenaran en BigQuery.
+
+Por otra parte, se colocará un Memorystore entre la base de datos y servicios que la consumen, con el fin de que reducir los tiempos de respuesta al retener las consultas mas recurrentes.
 
 ## Visualización
 

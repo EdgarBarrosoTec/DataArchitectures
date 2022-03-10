@@ -8,6 +8,7 @@ from diagrams.gcp.compute import Run, Functions
 from diagrams.gcp.devtools import Scheduler
 from diagrams.gcp.database import SQL, Memorystore
 from diagrams.gcp.analytics import PubSub, Dataflow, Bigquery
+from diagrams.onprem.analytics import Tableau, PowerBI
 from diagrams.firebase.develop import Authentication
 from diagrams.generic.device import Mobile, Tablet
 from diagrams.elastic.elasticsearch import Elasticsearch, Kibana, Logstash, Beats
@@ -17,8 +18,11 @@ from diagrams.programming.flowchart import Action
 black = "#555555"
 orange = "#D85E14"
 dark_blue = "#023059"
+light_blue = "#2A8782"
 
 with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, filename="iot-architecture"):  
+  web = Custom("Web", "./assets/internet.png")
+
   with Cluster("Local"):    
     maquinaria = Custom("Maquinaria", "./assets/tractor.png")
     ganaderia = Custom("Ganadería", "./assets/ganado.png")    
@@ -32,10 +36,13 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
       maiz= Custom("", "./assets/maiz.png")
       trigo = Custom("", "./assets/trigo.png")      
 
-  with Cluster("Internet"):
+  with Cluster("Visualización"):    
     smartphone = Mobile("Smartphone")
     tablet = Tablet("Tablet")
     computer = Custom("Computadora", "./assets/computer.png")
+    tableau = Tableau("Tableau")
+    powerbi = PowerBI("Power BI")
+    gds = Custom("Google Data Studio", "./assets/google-data-studio.png")
 
   with Cluster("Servicios Externos"):
     with Cluster("Archivos"):
@@ -78,9 +85,6 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
       beats = Beats("Beats\n(Ingesta)")
       kibana = Kibana("Kibana\n(Monitorización y Debugging)")
 
-    with Cluster("Visualización"):
-      gds = Custom("Google Data Studio", "./assets/google-data-studio.png")
-
   # Conexiones Local
   maiz >> Edge(color=black, style="dotted") >> sensor1
   trigo >> Edge(color=black, style="dotted") >> sensor2
@@ -114,19 +118,20 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
   function1 << Edge(color=black, style="dotted") << cache
   functions << Edge(color=black, style="dotted") >> cache
 
-  # Conexiones GCP - Internet
-  [ smartphone, tablet, computer ] << Edge(color=orange) >> cdn
-  computer << Edge(color=dark_blue) << gds
-  gds << Edge(color=black, style="dotted") >> bigquery
+  # Conexiones GCP - Visualización
+  [ smartphone, tablet, computer ] << Edge(color=orange) >> web
+  web << Edge(color=orange) >> cdn
+  gds << Edge(color=dark_blue) >> bigquery
+  [ tableau, powerbi ] << Edge(color=dark_blue) >> cache
 
   # Conexiones GCP - Registros y monitoreo
   beats >> Edge(color=black, style="dotted") >> logstash
   logstash >> Edge(color=black, style="dotted") >> elasticsearch
   elasticsearch >> Edge(color=black, style="dotted") >> kibana
-  beats << Edge(color=black, style="dotted") << contenedor
-  beats << Edge(color=black, style="dotted") << [ function1, functions ]
+  beats << Edge(color=light_blue, style="dashed") << contenedor
+  beats << Edge(color=light_blue, style="dashed") << [ function1, functions ]
 
-  # Conexiones GCP - Visualización
+  # Conexiones GCP - Servicios Externos
   csv >> Edge(color=dark_blue) >> bucket
   kobotoolbox >> Edge(color=dark_blue) >> api_gateway
 
