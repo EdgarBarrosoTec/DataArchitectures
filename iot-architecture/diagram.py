@@ -8,18 +8,17 @@ from diagrams.gcp.compute import Run, Functions
 from diagrams.gcp.devtools import Scheduler
 from diagrams.gcp.database import SQL, Memorystore
 from diagrams.gcp.analytics import PubSub, Dataflow, Bigquery
-from diagrams.onprem.compute import Server
-from diagrams.onprem.analytics import Tableau, PowerBI
 from diagrams.firebase.develop import Authentication
 from diagrams.generic.device import Mobile, Tablet
 from diagrams.elastic.elasticsearch import Elasticsearch, Kibana, Logstash, Beats
+from diagrams.programming.flowchart import Action
 
 # Colores
 black = "#555555"
+orange = "#D85E14"
+dark_blue = "#023059"
 
 with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, filename="iot-architecture"):  
-  externo = Server("Servicios Externos")   
-
   with Cluster("Local"):    
     maquinaria = Custom("Maquinaria", "./assets/tractor.png")
     ganaderia = Custom("Ganadería", "./assets/ganado.png")    
@@ -33,14 +32,18 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
       maiz= Custom("", "./assets/maiz.png")
       trigo = Custom("", "./assets/trigo.png")      
 
-  with Cluster("Visualización"):
-    tableau = Tableau("Tableau")
-    powerbi = PowerBI("Power BI")
-    kibana = Kibana("Kibana")
-
   with Cluster("Internet"):
     smartphone = Mobile("Smartphone")
     tablet = Tablet("Tablet")
+    computer = Custom("Computadora", "./assets/computer.png")
+
+  with Cluster("Servicios Externos"):
+    with Cluster("Archivos"):
+      drive = Custom("Google Drive", "./assets/google-drive.png")
+      csv = Custom("CSV", "./assets/file.png")
+
+    with Cluster("Formularios"):
+      kobotoolbox = Custom("Kobotoolbox", "./assets/kobotoolbox.png")
 
   with Cluster("Google Cloud Platform"):    
     scheduler = Scheduler("Scheduler\n(Programador de Tareas)")
@@ -73,7 +76,12 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
       elasticsearch = Elasticsearch("Elasticsearch\n(Registro de eventos/errores)")      
       logstash = Logstash("Logstash\n(Procesamiento de logs)")
       beats = Beats("Beats\n(Ingesta)")
+      kibana = Kibana("Kibana\n(Monitorización y Debugging)")
 
+    with Cluster("Visualización"):
+      gds = Custom("Google Data Studio", "./assets/google-data-studio.png")
+
+  # Conexiones Local
   maiz >> Edge(color=black, style="dotted") >> sensor1
   trigo >> Edge(color=black, style="dotted") >> sensor2
   maquinaria >> Edge(color=black, style="dotted") >> sensor3
@@ -81,36 +89,46 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
   [sensor1, sensor2, sensor3, sensor4] >> Edge(color=black, style="dotted") >> hub
   hub >> Edge(color=black) >> iot_core
 
+  # Conexiones GCP - Ingesta de datos
   iot_core >> Edge(color=black, style="dotted") >> pubsub
   pubsub >> Edge(color=black, style="dotted") >> decodificacion
 
+  # Conexiones GCP - Procesamiento
   decodificacion >> Edge(color=black, style="dotted") >> bigquery
   agregacion << Edge(color=black, style="dotted") >> bigquery
   agregacion >> Edge(color=black, style="dotted") >> base_datos
 
+  # Conexiones GCP - Almacenamiento de datos
   base_datos << Edge(color=black, style="dotted") >> cache
+  bigquery << Edge(color=black, style="dotted") >> cache
   cache << Edge(color=black, style="dotted") >> contenedor
 
+  # Conexiones GCP - Backend
   contenedor << Edge(color=black, style="dotted") >> bucket
   firebase_auth << Edge(color=black, style="dotted") >> contenedor
   cdn << Edge(color=black, style="dotted") >> firebase_auth
 
+  # Conexiones GCP - Integración externa
   function1 >> Edge(color=black, style="dotted") >> api_gateway
   functions << Edge(color=black, style="dotted") >> api_gateway
   function1 << Edge(color=black, style="dotted") << cache
   functions << Edge(color=black, style="dotted") >> cache
 
-  externo << Edge(color=black) >> api_gateway
+  # Conexiones GCP - Internet
+  [ smartphone, tablet, computer ] << Edge(color=orange) >> cdn
+  computer << Edge(color=dark_blue) << gds
+  gds << Edge(color=black, style="dotted") >> bigquery
 
-  smartphone << Edge(color=black) >> cdn
-  tablet << Edge(color=black) >> cdn
-
-  [ tableau, powerbi ] << Edge(color=black) << api_gateway
-
+  # Conexiones GCP - Registros y monitoreo
   beats >> Edge(color=black, style="dotted") >> logstash
   logstash >> Edge(color=black, style="dotted") >> elasticsearch
-  elasticsearch >> Edge(color=black) >> kibana
+  elasticsearch >> Edge(color=black, style="dotted") >> kibana
   beats << Edge(color=black, style="dotted") << contenedor
   beats << Edge(color=black, style="dotted") << [ function1, functions ]
 
-  scheduler >> agregacion
+  # Conexiones GCP - Visualización
+  csv >> Edge(color=dark_blue) >> bucket
+  kobotoolbox >> Edge(color=dark_blue) >> api_gateway
+
+  # GCP - Otros
+  scheduler - Edge(color=black, style="dotted") - agregacion
