@@ -1,5 +1,6 @@
 from diagrams import Cluster, Diagram, Edge
 from diagrams.custom import Custom
+from diagrams.generic.blank import Blank
 from diagrams.gcp.api import APIGateway
 from diagrams.gcp.iot import IotCore
 from diagrams.gcp.network import CDN
@@ -22,6 +23,23 @@ light_blue = "#2A8782"
 
 with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, filename="iot-architecture"):  
   web = Custom("Web", "./assets/internet.png")
+
+  with Cluster("Leyenda"):
+    with Cluster("Tipo de conexión"):
+      Blank() - Edge(label="Conexión Local", color=black, style="dotted") - Blank()
+      Blank() - Edge(label="Conexión Remota", color=black) - Blank()
+    
+    with Cluster("Dirección del flujo"):
+      a_unidirectional, b_unidirectional = Blank(), Blank()
+      a_unidirectional >> Edge(label="Flujo unidireccional", color=black) >> b_unidirectional
+      a_unidirectional << Edge(label="", color=black) << b_unidirectional      
+      Blank() << Edge(label="Flujo bidireccional", color=black) >> Blank()
+
+    with Cluster("Colores"):
+      Blank() - Edge(label="Proposito general", color=black) - Blank()
+      Blank() - Edge(label="Tráfico web", color=orange) - Blank()
+      Blank() - Edge(label="Entrada (servicios externos), Salida (Visualización)", color=dark_blue) - Blank()
+      Blank() - Edge(label="Depuración, captura de errores, métricas", color=light_blue) - Blank()
 
   with Cluster("Local"):    
     maquinaria = Custom("Maquinaria", "./assets/tractor.png")
@@ -83,7 +101,7 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
       elasticsearch = Elasticsearch("Elasticsearch\n(Registro de eventos/errores)")      
       logstash = Logstash("Logstash\n(Procesamiento de logs)")
       beats = Beats("Beats\n(Ingesta)")
-      kibana = Kibana("Kibana\n(Monitorización y Debugging)")
+      kibana = Kibana("Kibana\n(Monitorización y Debugging)")  
 
   # Conexiones Local
   maiz >> Edge(color=black, style="dotted") >> sensor1
@@ -127,7 +145,7 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
   # Conexiones GCP - Registros y monitoreo
   beats >> Edge(color=black, style="dotted") >> logstash
   logstash >> Edge(color=black, style="dotted") >> elasticsearch
-  elasticsearch >> Edge(color=black, style="dotted") >> kibana
+  elasticsearch << Edge(color=black, style="dotted") >> kibana
   beats << Edge(color=light_blue, style="dashed") << contenedor
   beats << Edge(color=light_blue, style="dashed") << [ function1, functions ]
 
