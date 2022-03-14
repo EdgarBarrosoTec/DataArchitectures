@@ -107,7 +107,6 @@ Para solventar esto, se propone hacer uso de **Elastic Stack**, el cual nos brin
 El stack se compone de los siguientes servicios:
 
 - **Beats**: Nos sirve como punto de entrada para que los componentes inserten sus registros. Posteriormente este se encargará de pasar los registros capturados al servicio de
-- **Logstash** en caso de que se requiera un procesamiento adicional, o bien almacenarlos directamente en **Elasticsearch**.
 
 - **Logstash**: Permite procesar los registros capturados, aplicarle filtros, transformaciones, etc. Posteriormente se encargará de almacenarlos en **Elasticsearch**.
 
