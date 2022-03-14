@@ -18,7 +18,6 @@ from diagrams.onprem.analytics import Tableau, PowerBI
 from diagrams.firebase.develop import Authentication
 from diagrams.generic.device import Mobile, Tablet
 from diagrams.elastic.elasticsearch import Elasticsearch, Kibana, Logstash, Beats
-from diagrams.programming.flowchart import Action
 
 with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, filename="iot-architecture"):  
   web = Custom("Web", "../assets/internet.png")
