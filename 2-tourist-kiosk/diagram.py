@@ -103,7 +103,7 @@ with Diagram(name="Arquitectura Quiosco turístico", show=False, filename="touri
   function1 >> Edge(color=colors.black, style="dotted") >> nlp_in
   csv >> Edge(color=colors.dark_blue) >> nlp_in
   kobotoolbox >> Edge(color=colors.dark_blue) >> api_gateway
-  google_docs >> Edg(color=colors.dark_blue) >> api_gateway
+  google_docs >> Edge(color=colors.dark_blue) >> api_gateway
 
   # Conexiones GCP - Visualización
   [ smartphone, tablet, computer ] << Edge(color=colors.orange) >> web
