@@ -19,25 +19,8 @@ from diagrams.firebase.develop import Authentication
 from diagrams.generic.device import Mobile, Tablet
 from diagrams.elastic.elasticsearch import Elasticsearch, Kibana, Logstash, Beats
 
-with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, filename="iot-architecture"):  
+with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, filename="iot-architecture"):
   web = Custom("Web", "../assets/internet.png")
-
-  with Cluster("Leyenda"):
-    with Cluster("Tipo de conexión"):
-      Blank() - Edge(label="Conexión Local", color=colors.black, style="dotted") - Blank()
-      Blank() - Edge(label="Conexión Remota", color=colors.black) - Blank()
-    
-    with Cluster("Dirección del flujo"):
-      a_unidirectional, b_unidirectional = Blank(), Blank()
-      a_unidirectional >> Edge(label="Flujo unidireccional", color=colors.black) >> b_unidirectional
-      a_unidirectional << Edge(label="", color=colors.black) << b_unidirectional      
-      Blank() << Edge(label="Flujo bidireccional", color=colors.black) >> Blank()
-
-    with Cluster("Colores"):
-      Blank() - Edge(label="Proposito general", color=colors.black) - Blank()
-      Blank() - Edge(label="Tráfico web", color=colors.orange) - Blank()
-      Blank() - Edge(label="Entrada (servicios externos), Salida (Visualización)", color=colors.dark_blue) - Blank()
-      Blank() - Edge(label="Depuración, captura de errores, métricas", color=colors.light_blue) - Blank()
 
   with Cluster("Local"):    
     maquinaria = Custom("Maquinaria", "../assets/tractor.png")
