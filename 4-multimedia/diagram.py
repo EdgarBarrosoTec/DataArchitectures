@@ -19,7 +19,12 @@ from diagrams.firebase.develop import Authentication
 from diagrams.generic.device import Mobile, Tablet
 from diagrams.elastic.elasticsearch import Elasticsearch, Kibana, Logstash, Beats
 
-with Diagram(name="Arquitectura de Datos Multimedia", show=False, filename="multimedia-architecture"):  
+graph_attr = {
+    "splines": "spline",
+    "concentrate":"true",
+}
+
+with Diagram(name="Arquitectura de Datos Multimedia", graph_attr=graph_attr, show=False, filename="multimedia-architecture"):  
   web = Custom("Web", "../assets/internet.png")
 
   with Cluster("Visualización"):    
@@ -102,7 +107,9 @@ with Diagram(name="Arquitectura de Datos Multimedia", show=False, filename="mult
   cdn << Edge(color=colors.black, style="dotted") >> firebase_auth
 
   # Conexiones GCP - Visualización
-  [ smartphone, tablet, computer ] << Edge(color=colors.orange) >> web
+  web_connector = Blank("", height="0.0", width="0.0")
+  [ smartphone, tablet, computer ] << Edge(color=colors.orange, tailport="e", headport="w", minlen="1") << web_connector
+  web_connector >> Edge(color=colors.orange, tailport="e", headport="w", minlen="1") >> web
   web << Edge(color=colors.orange) >> cdn
   gds << Edge(color=colors.dark_blue) >> bigquery
   [ tableau, powerbi ] << Edge(color=colors.dark_blue) >> cache
@@ -116,7 +123,7 @@ with Diagram(name="Arquitectura de Datos Multimedia", show=False, filename="mult
   # GCP - Servicios Externos
   api_gateway >> Edge(color=colors.black, style="dotted") >> function1
   function1 >> Edge(color=colors.black, style="dotted") >> contenedor
-  kobotoolbox >> Edge(color=colors.dark_blue) >> api_gateway
+  kobotoolbox >> Edge(color=colors.dark_blue, tailport="e", headport="w", minlen="1") >> api_gateway
   erp >> Edge(color=colors.black) >> [ api_gateway, bigquery ]
   csv >> Edge(color=colors.dark_blue) >> bucket
 
