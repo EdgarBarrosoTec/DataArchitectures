@@ -19,8 +19,15 @@ from diagrams.firebase.develop import Authentication
 from diagrams.generic.device import Mobile, Tablet
 from diagrams.elastic.elasticsearch import Elasticsearch, Kibana, Logstash, Beats
 
-with Diagram(name="Arquitectura Quiosco turístico", show=False, filename="ecommerce-architecture"):  
+graph_attr = {
+    "splines": "spline",
+    "concentrate":"true",
+}
+
+with Diagram(name="", graph_attr=graph_attr, show=False, filename="ecommerce-architecture"):  
   web = Custom("Web", "../assets/internet.png")
+  ecommerce = Blank("", height="0.0", width="0.0")
+  web_connector = Blank("", height="0.0", width="0.0")
 
   with Cluster("Visualización"):    
     smartphone = Mobile("Smartphone")
@@ -41,10 +48,23 @@ with Diagram(name="Arquitectura Quiosco turístico", show=False, filename="ecomm
     with Cluster("ERP"):
       erp = Blank("")
 
+    with Cluster("Comercio Electrónico"):      
+      shopify = Custom("", "../assets/shopify.png")
+      woocommerce = Custom("", "../assets/woocommerce.png")
+      prestashop = Custom("", "../assets/prestashop.png")
+      magento = Custom("", "../assets/magento.png")
+
+    with Cluster("Pasarelas de Pago"):
+      stripe = Custom("Stripe", "../assets/stripe.png")
+      paypal = Custom("PayPal", "../assets/paypal.png")
+      mercadopago = Custom("MercadoPago", "../assets/mercado-pago.png")
+      amazon_pay = Custom("Amazon Pay", "../assets/amazon-pay.png")
+
   with Cluster("Google Cloud Platform"):
     scheduler = Scheduler("Scheduler\n(Programador de tareas)")
     firebase_auth = Authentication("Firebase Authentication")
     cdn = CDN("Cloud CDN\n(Distribución de contenido)")    
+    beats_connector = Blank("", height="0.0", width="0.0")
 
     with Cluster("Recomendaciones, Perfil de usuario y Análisis"):
       google_analytics = Custom("Google Analytics", "../assets/google-analytics.png")
@@ -98,32 +118,37 @@ with Diagram(name="Arquitectura Quiosco turístico", show=False, filename="ecomm
   recommendations_ai << Edge(color=colors.black, style="dotted") >> recommendations_service
 
   # Conexiones GCP - Visualización
-  [ smartphone, tablet, computer ] << Edge(color=colors.orange) >> web
+  [ smartphone, tablet, computer ] << Edge(color=colors.orange, tailport="e", headport="w", minlen="1") <<  web_connector
+  web_connector >> Edge(color=colors.orange, tailport="e", headport="w", minlen="1") >> web
   web << Edge(color=colors.orange) >> cdn
-  gds << Edge(color=colors.dark_blue) >> bigquery
+  gds << Edge(color=colors.dark_blue) << bigquery
   [ tableau, powerbi ] << Edge(color=colors.dark_blue) >> cache
 
   # Conexiones GCP - Registros y monitoreo
   beats >> Edge(color=colors.black, style="dotted") >> logstash
   logstash >> Edge(color=colors.black, style="dotted") >> elasticsearch
-  elasticsearch << Edge(color=colors.black, style="dotted") >> kibana
-  beats << Edge(color=colors.light_blue, style="dashed") << contenedor
-  beats << Edge(color=colors.light_blue, style="dashed") << function1
+  elasticsearch << Edge(color=colors.black, style="dotted") >> kibana  
+  beats_connector - Edge(color=colors.light_blue, style="dashed") - [ function1, contenedor ]
+  beats << Edge(color=colors.light_blue, style="dashed", tailport="e", headport="w", minlen="1") << beats_connector
 
   # GCP - Flujo Ecommerce
   tag_manager >> Edge(color=colors.black, style="dotted") >> google_analytics
-  google_analytics >> Edge(color=colors.black, style="dotted") >> bigquery  
-  recommendations_ai >> Edge(color=colors.black, style="dotted") >> bigquery
+  [ google_analytics, recommendations_ai ] >> Edge(color=colors.black, style="dotted", tailport="e", headport="w", minlen="1") >> bigquery
 
   # GCP - Servicios Externos
   api_gateway >> Edge(color=colors.black, style="dotted") >> function1
   function1 >> Edge(color=colors.black, style="dotted") >> contenedor
   csv >> Edge(color=colors.dark_blue) >> bucket
   kobotoolbox >> Edge(color=colors.dark_blue) >> api_gateway
-  erp >> Edge(color=colors.black) >> [ api_gateway, bigquery ]
+  erp >> Edge(color=colors.dark_blue) >> [ api_gateway, bigquery ]
+  [ shopify, woocommerce, prestashop, magento ] - Edge(color=colors.purple, style="bold", tailport="e", headport="w", minlen="1") - ecommerce
+  ecommerce - Edge(color=colors.purple, style="bold", tailport="e", headport="w", minlen="1") - contenedor
+  payment_connector = Blank("", height="0.0", width="0.0")
+  [ paypal, mercadopago, stripe, amazon_pay ] - Edge(color=colors.dark_blue, tailport="e", headport="w", minlen="1") - payment_connector
+  payment_connector >> Edge(color=colors.dark_blue, tailport="e", headport="n", minlen="1") >> payment_service
 
   # GCP - Procesamiento
   dataflow << Edge(color=colors.black, style="dotted") << bigquery
   dataflow >> Edge(color=colors.black, style="dotted") >> ad_function
   ad_function >> Edge(color=colors.black, style="dotted") >> dv360
-  scheduler >> Edge(color=colors.black, style="dotted", label="iniciar campaña") >> dataflow
+  scheduler >> Edge(color=colors.black, style="dotted") >> dataflow
