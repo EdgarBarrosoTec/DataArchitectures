@@ -19,7 +19,12 @@ from diagrams.firebase.develop import Authentication
 from diagrams.generic.device import Mobile, Tablet
 from diagrams.elastic.elasticsearch import Elasticsearch, Kibana, Logstash, Beats
 
-with Diagram(name="Arquitectura Quiosco turístico", show=False, filename="tourist-kiosk-architecture"):  
+graph_attr = {
+    "splines": "spline",
+    "concentrate":"true",
+}
+
+with Diagram(name="Arquitectura Quiosco turístico", graph_attr=graph_attr, show=False, filename="tourist-kiosk-architecture"):  
   web = Custom("Web", "../assets/internet.png")  
 
   with Cluster("Ingesta de datos"):
@@ -56,7 +61,7 @@ with Diagram(name="Arquitectura Quiosco turístico", show=False, filename="touri
 
     with Cluster("Procesamiento de lenguaje natural"):
       nlp = NaturalLanguageAPI("Natural Language API\n(Análisis de lenguaje natural)")
-      nlp_in = Storage("Storage\nFormularios")
+      nlp_in = Storage("Storage\n(Formularios)")
       nlp_function = Functions("Functions\n(Rutina de procesamiento)")      
       translations = TranslationAPI("Translation API\n(Traducción de idiomas)")
       dialogflow = DialogFlowEnterpriseEdition("DialogFlow\n(IA de Converssación)")
@@ -89,26 +94,28 @@ with Diagram(name="Arquitectura Quiosco turístico", show=False, filename="touri
   google_docs >> Edge(color=colors.dark_blue) >> api_gateway
 
   # Conexiones GCP - Visualización
-  [ smartphone, tablet, computer ] << Edge(color=colors.orange) >> web
+  web_connector = Blank("", height="0.0", width="0.0")
+  [ smartphone, tablet, computer ] << Edge(color=colors.orange, tailport="e", headport="w", minlen="1") << web_connector
+  web_connector >> Edge(color=colors.orange, tailport="e", headport="w", minlen="1") >> web
   web << Edge(color=colors.orange) >> cdn
   gds << Edge(color=colors.dark_blue) >> bigquery
   [ tableau, powerbi ] << Edge(color=colors.dark_blue) >> cache
   smartphone >> Edge(color=colors.black) >> google_assistant
 
   # Conexiones GCP - Registros y monitoreo
-  beats >> Edge(color=colors.black, style="dotted") >> logstash
+  beats >> Edge(color=colors.black, style="dotted", tailport="e", headport="w", minlen="1") >> logstash
   logstash >> Edge(color=colors.black, style="dotted") >> elasticsearch
   elasticsearch << Edge(color=colors.black, style="dotted") >> kibana
-  beats << Edge(color=colors.light_blue, style="dashed") << contenedor
+  beats << Edge(color=colors.light_blue, style="dashed", tailport="n", headport="s", minlen="1") << contenedor
   beats << Edge(color=colors.light_blue, style="dashed") << function1
   nlp_function >> Edge(color=colors.light_blue, style="dashed") >> beats
 
   # Procesamiento de lenguaje natural
   nlp_function << Edge(color=colors.black, style="dotted") << nlp_in
   nlp_function >> Edge(color=colors.black, style="dotted") >> nlp  
-  scheduler >> Edge(color=colors.black, style="dotted", label="iniciar procesamiento") >> nlp_function  
+  scheduler >> Edge(color=colors.black, style="dotted") >> nlp_function  
   nlp >> Edge(color=colors.black, style="dotted") >> translations
   translations >> Edge(color=colors.black, style="dotted") >> bigquery
-  web >> Edge(color=colors.dark_blue) >> dialogflow  
+  web >> Edge(color=colors.dark_blue, tailport="e", headport="w", minlen="1") >> dialogflow  
   google_assistant >> Edge(color=colors.black, style="dotted") >> dialogflow
-  dialogflow << Edge(color=colors.black, style="dotted") >> contenedor
+  dialogflow << Edge(color=colors.black, style="dotted", tailport="e", headport="w", minlen="1") >> contenedor
