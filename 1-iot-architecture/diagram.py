@@ -19,7 +19,12 @@ from diagrams.firebase.develop import Authentication
 from diagrams.generic.device import Mobile, Tablet
 from diagrams.elastic.elasticsearch import Elasticsearch, Kibana, Logstash, Beats
 
-with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, filename="iot-architecture"):
+graph_attr = {
+    "splines": "spline",
+    "concentrate":"true",
+}
+
+with Diagram(name="Arquitectura IoT (agricultura y ganadería)", graph_attr=graph_attr, show=False, filename="iot-architecture"):
   web = Custom("Web", "../assets/internet.png")
 
   with Cluster("Local"):    
@@ -30,6 +35,7 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
     sensor2 = Custom("sensor", "../assets/sensor.png")
     sensor3 = Custom("sensor", "../assets/sensor.png")
     sensor4 = Custom("sensor", "../assets/sensor.png")
+    sensor_connector = Blank("", height="0.0", width="0.0")
 
     with Cluster("Agricultura"):
       maiz= Custom("", "../assets/maiz.png")
@@ -74,8 +80,8 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
       bucket = Storage("Storage\n(Multimedia, Archivos)")
 
     with Cluster("Integración externa"):
-      function1 = Functions("Cloud Function\n(Servicio 1)")
-      functions = Functions("Cloud Function\n(Servicio N)")
+      function1 = Functions("Cloud Function\n(Salida)")
+      functions = Functions("Cloud Function\n(Entrada)")
       api_gateway = APIGateway("API Gateway")
 
     with Cluster("Registros y monitoreo"):
@@ -88,8 +94,9 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
   maiz >> Edge(color=colors.black, style="dotted") >> sensor1
   trigo >> Edge(color=colors.black, style="dotted") >> sensor2
   maquinaria >> Edge(color=colors.black, style="dotted") >> sensor3
-  ganaderia >> Edge(color=colors.black, style="dotted") >> sensor4
-  [sensor1, sensor2, sensor3, sensor4] >> Edge(color=colors.black, style="dotted") >> hub
+  ganaderia >> Edge(color=colors.black, style="dotted") >> sensor4  
+  [sensor1, sensor2, sensor3, sensor4] - Edge(color=colors.black, style="dotted", tailport="e", headport="w", minlen="1") - sensor_connector
+  sensor_connector >> Edge(color=colors.black, style="dotted") >> hub
   hub >> Edge(color=colors.black) >> iot_core
 
   # Conexiones GCP - Ingesta de datos
@@ -115,10 +122,12 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
   function1 >> Edge(color=colors.black, style="dotted") >> api_gateway
   functions << Edge(color=colors.black, style="dotted") >> api_gateway
   function1 << Edge(color=colors.black, style="dotted") << cache
-  functions << Edge(color=colors.black, style="dotted") >> cache
+  functions >> Edge(color=colors.black, style="dotted") >> bigquery
 
   # Conexiones GCP - Visualización
-  [ smartphone, tablet, computer ] << Edge(color=colors.orange) >> web
+  web_connector = Blank("", height="0.0", width="0.0")
+  [ smartphone, tablet, computer ] << Edge(color=colors.orange, tailport="e", headport="w", minlen="1") << web_connector
+  web_connector >> Edge(color=colors.orange, tailport="e", headport="w", minlen="1") >> web
   web << Edge(color=colors.orange) >> cdn
   gds << Edge(color=colors.dark_blue) >> bigquery
   [ tableau, powerbi ] << Edge(color=colors.dark_blue) >> cache
@@ -135,4 +144,4 @@ with Diagram(name="Arquitectura IoT (agricultura y ganadería)", show=False, fil
   kobotoolbox >> Edge(color=colors.dark_blue) >> api_gateway
 
   # GCP - Otros
-  scheduler - Edge(color=colors.black, style="dotted") - agregacion
+  scheduler >> Edge(color=colors.black, style="dotted") >> agregacion
